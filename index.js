@@ -1,7 +1,9 @@
 const express = require('express')
 const morgan = require('morgan')
+const cors = require('cors')
 const app = express()
 app.use(express.json())
+app.use(cors())
 
 let persons = [
   {
@@ -69,6 +71,11 @@ morgan.token('personInfo', (req, res) => {
 })
 app.use(morgan(':method :url :response-time ms :personInfo'))
 
+function isInPhonebook(name) {
+  const names = persons.map((person) => person.name)
+  return names.includes(name)
+}
+
 app.post('/api/persons', (req, res) => {
   const body = req.body
 
@@ -80,16 +87,8 @@ app.post('/api/persons', (req, res) => {
     return res.status(400).json({
       error: 'Number missing',
     })
-  } else if (
-    () => {
-      persons.map((person) => {
-        person.name === body.name ? true : false
-      })
-    }
-  ) {
-    return res.status(400).json({
-      error: `${body.name} already in the phonebook`,
-    })
+  } else if (isInPhonebook(body.name)) {
+    return res.status(400).json({ error: `${body.name} already in phonebook` })
   }
 
   const person = {
@@ -103,7 +102,7 @@ app.post('/api/persons', (req, res) => {
   res.json(persons)
 })
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
