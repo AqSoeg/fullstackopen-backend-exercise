@@ -1,4 +1,5 @@
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
 app.use(express.json())
 
@@ -61,6 +62,12 @@ app.delete('/api/persons/:id', (req, res) => {
 
   res.status(204).end()
 })
+
+// Configure middleware Morgan to log person infomation
+morgan.token('personInfo', (req, res) => {
+  return JSON.stringify(req.body)
+})
+app.use(morgan(':method :url :response-time ms :personInfo'))
 
 app.post('/api/persons', (req, res) => {
   const body = req.body
