@@ -6,6 +6,7 @@ const app = express()
 app.use(express.json())
 app.use(cors())
 app.use(express.static('dist'))
+app.use(morgan('tiny'))
 
 let persons = [
   {
@@ -71,7 +72,12 @@ app.delete('/api/persons/:id', (req, res) => {
 morgan.token('personInfo', (req, res) => {
   return JSON.stringify(req.body)
 })
-app.use(morgan(':method :url :response-time ms :personInfo'))
+
+app.use(
+  morgan(
+    ':method :url :status :res[content-length] - :response-time ms :personInfo'
+  )
+)
 
 function isInPhonebook(name) {
   const names = persons.map((person) => person.name)
