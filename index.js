@@ -1,6 +1,8 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const Person = require('./models/phonebook')
 const app = express()
 
 app.use(express.json())
@@ -31,18 +33,14 @@ let persons = [
   },
 ]
 
-function generateId() {
-  const maxId =
-    persons.length > 0 ? Math.max(...persons.map((person) => person.id)) : 0
-  return maxId + 1
-}
-
 app.get('/', (req, res) => {
   res.send('Phonebook')
 })
 
 app.get('/api/persons', (req, res) => {
-  res.json(persons)
+  Person.find({}).then((persons) => {
+    res.json(persons)
+  })
 })
 
 app.get('/info', (req, res) => {
@@ -99,18 +97,19 @@ app.post('/api/persons', (req, res) => {
     return res.status(400).json({ error: `${body.name} already in phonebook` })
   }
 
-  const person = {
-    id: generateId(),
+  const person = new Person({
     name: body.name,
     number: body.number,
-  }
+  })
 
-  persons = persons.concat(person)
+  person.save().then((savedPersons) => {
+    res.json(savedPersons)
+  })
 
   res.json(persons)
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
